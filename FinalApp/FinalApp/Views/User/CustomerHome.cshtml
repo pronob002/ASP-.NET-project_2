@@ -1,0 +1,268 @@
+﻿@model FinalApp.ViewModels.CustomerHomeViewModel
+
+@{
+    ViewData["Title"] = "Customer Home";
+    var userName = ViewBag.UserName as string;
+    var items = ViewBag.Items as IEnumerable<FinalApp.Models.Item>;
+    var searchQuery = ViewBag.SearchQuery as string;
+    var userId = ViewBag.UserId != null ? (Guid)ViewBag.UserId : Guid.Empty;
+    var selectedItemCount = ViewBag.SelectedItemCount != null ? (int)ViewBag.SelectedItemCount : 0;
+    var profileImagePath = ViewBag.ProfileImagePath as string;
+    var flag = ViewBag.flag != null ? (bool)ViewBag.flag : false;
+
+    ViewBag.HideNav = flag;
+
+    ViewData["HideNavbar"] = true; 
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+    
+</style>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/CustomerCSS.css">
+
+    <style>
+        
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand blk" href="#">Shopfinity</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    @if (!string.IsNullOrEmpty(userName))
+                    {
+                        @if (!flag)
+                        {
+                            <li class="nav-item blk">
+                                <a class="nav-link text-white blk" href="#">Hi, @userName!</a>
+                        </li>}
+                    }
+                    @if (flag)
+                    {
+                        <li class="nav-item d-none blk">
+                            <button class="btn btn-link nav-link text-white blk" onclick="submitCartForm()">
+                                <i class="fa-solid fa-cart-shopping blk"></i> Cart (<span id="cartCount">@selectedItemCount</span>)
+                            </button>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item blk">
+                            <button class="btn btn-link nav-link text-white" onclick="submitCartForm()">
+                                <i class="fa-solid fa-cart-shopping blk"></i> Cart (<span id="cartCount">@selectedItemCount</span>)
+                            </button>
+                        </li>
+                    }
+                    @if (!flag)
+                    {
+                        <li class="nav-item blk">
+                            <a class="nav-link text-white blk" href="/User/Logout">Logout</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="container my-4">
+        <div class="card">
+            <div class="card-body text-center">
+                @if (!string.IsNullOrEmpty(userName))
+                {
+                    <h2 class="text-center">Get The Best Products Here</h2>
+                }
+                @if (!flag)
+                {
+                    <h5 class="text-center hi">Logged in as a customer.</h5>
+                }
+
+                <div class="profile-container">
+                    @if (!string.IsNullOrEmpty(profileImagePath))
+                    {
+                        <div class="proimg">
+                            <img src="@profileImagePath" alt="Profile Image" class="profile-image" />
+                        </div>
+                    }
+
+                    @if (!flag)
+                    {
+                        <div class="proimg">
+                            <a href="@Url.Action("EditProfile", new { userId = userId })" class="btn update-button">
+                                <i class="fas fa-user-edit"></i> Edit personal details
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                @if (!flag)
+                {
+                    <div class="text-center mb-4">
+                        <form method="get" asp-action="CustomerHome" class="search-form">
+                            <div class="input-group">
+                                <input type="hidden" name="userId" value="@userId" />
+                                <input type="text" name="searchQuery" class="form-control" placeholder="Search here..."
+                                       value="@searchQuery" />
+                                <button type="submit" class="btn btn-custom"><i class="fas fa-search"></i> Search</button>
+                            </div>
+                        </form>
+                    </div>
+                }
+
+                @if (!flag)
+                {
+                    <h2 class="gio">Choose Your Products</h2>
+                }
+                @if (items != null && items.Any() && !flag)
+                {
+                    <form id="cartForm" method="post" asp-action="SelectedItems">
+                        <div class="item-card-container">
+                            @foreach (var item in items)
+                            {
+                                <div class="item-card" onclick="toggleItemSelection(this)">
+                                    <div class="item-card-content">
+                                        <input type="checkbox" class="item-checkbox" name="selectedItems" value="@item.ItemId" />
+                                        <input type="hidden" name="userId" value="@userId" />
+                                        <h5>@item.ItemName</h5>
+                                        <p><strong>Price:</strong> $@item.Price</p>
+                                        <p><strong>Description:</strong> @item.Description</p>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(item.ItemImagePath))
+                                    {
+                                        <img src="@item.ItemImagePath" alt="@item.ItemName" class="item-image" />
+                                    }
+                                </div>
+                            }
+                        </div>
+                        
+                    </form>
+                }
+                else
+                {
+                    @if (!flag)
+                    {
+                        <p>No such item to buy</p>
+                    }
+                }
+
+                @if (flag)
+                {
+                    <p class="purchase-message"
+                    style="margin-top:-10px"
+                    >You have purchased your product(s) Successfully!</p>
+                    <div class="text-center mt-4">
+                        <button id="resetButton" class="btn btn-warning back-home-btn"
+                        style="background-color:midnightblue;color:white">
+                            <i class="fas fa-compass"></i>
+                            Explore More
+                        </button>
+                    </div>
+                }
+
+               
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const userId = '@userId';
+            const storageKey = `selectedItems_${userId}`;
+
+            const savedSelectedItems = JSON.parse(localStorage.getItem(storageKey)) || [];
+            updateCheckboxes(savedSelectedItems);
+            updateCartCount(savedSelectedItems.length);
+
+            document.querySelectorAll('.item-checkbox').forEach(function (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    const selectedItems = getSelectedItems();
+                    localStorage.setItem(storageKey, JSON.stringify(selectedItems));
+                    updateCartCount(selectedItems.length);
+                });
+            });
+
+            document.getElementById('resetButton').addEventListener('click', function () {
+                resetItemsAndRedirect();
+            });
+
+            function getSelectedItems() {
+                return Array.from(document.querySelectorAll('.item-checkbox:checked')).map(checkbox => checkbox.value);
+            }
+
+            function updateCheckboxes(selectedItems) {
+                document.querySelectorAll('.item-checkbox').forEach(function (checkbox) {
+                    checkbox.checked = selectedItems.includes(checkbox.value);
+                });
+            }
+
+            function updateCartCount(count) {
+                document.getElementById('cartCount').textContent = count;
+            }
+
+            function resetItemsAndRedirect() {
+                document.querySelectorAll('.item-checkbox').forEach(function (checkbox) {
+                    checkbox.checked = false;
+                });
+
+                localStorage.removeItem(storageKey);
+                updateCartCount(0);
+                window.location.href = `/User/CustomerHome?userId=${userId}`;
+            }
+        });
+
+        function submitCartForm() {
+            const cartCount = document.getElementById('cartCount').textContent;
+            if (parseInt(cartCount) === 0) {
+                alert('Please choose an item.');
+            } else {
+                document.getElementById('cartForm').submit();
+            }
+        }
+
+        function validateCart() {
+            const selectedItems = document.querySelectorAll('.item-checkbox:checked').length;
+            if (selectedItems === 0) {
+                alert('Please select at least one item.');
+                return false;
+            }
+            return true;
+        }
+
+        function toggleItemSelection(card) {
+            const checkbox = card.querySelector('.item-checkbox');
+            checkbox.checked = !checkbox.checked; 
+
+
+            if (checkbox.checked) {
+                card.classList.add('checked');
+            } else {
+                card.classList.remove('checked');
+            }
+
+
+            const event = new Event('change');
+            checkbox.dispatchEvent(event);
+        }
+    </script>
+</body>
+
+
+</html>

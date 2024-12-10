@@ -1,0 +1,27 @@
+﻿@model IEnumerable<FinalApp.Models.Item> 
+
+<h2>Items List</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Item ID</th>
+            <th>Seller ID</th>
+            <th>Item Name</th>
+            <th>Price</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.ItemId</td>
+                <td>@item.SellerId</td>
+                <td>@item.ItemName</td>
+                <td>@item.Price</td>
+                <td>@item.Description</td>
+            </tr>
+        }
+    </tbody>
+</table>

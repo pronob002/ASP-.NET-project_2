@@ -1,0 +1,105 @@
+﻿@model FinalApp.ViewModels.SelectedItemsViewModel
+@{
+    ViewData["HideNavbar"] = true;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> 
+    <link rel="stylesheet" type="text/css" href="/css/SelectedItems.css">
+</head>
+<body>
+    <div class="container">
+        <form asp-action="Logout" method="get" style="position: relative;">
+            <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+
+        <h2><i class="fas fa-shopping-cart"></i> Selected Items</h2>
+
+        @if (Model?.Items != null && Model.Items.Any())
+        {
+            <form id="buyForm" asp-action="BuyItems" method="post">
+                @foreach (var item in Model.Items)
+                {
+                    <div class="item-card">
+                        @if (!string.IsNullOrEmpty(item.ItemImagePath))
+                        {
+                            <img src="@item.ItemImagePath" alt="@item.ItemName" />
+                        }
+                        <div>
+                            <h5>@item.ItemName</h5>
+                            <p><strong>Price:</strong> $@item.Price</p>
+                            
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="fas fa-sort-numeric-up-alt"></i> Quantity</span>
+                                <input type="number" name="quantities[@item.ItemId]" class="form-control quantity-input" min="1" value="1" required />
+                            </div>
+                            <input type="hidden" name="itemIds" value="@item.ItemId" />
+                            <input type="hidden" name="sellerIds[@item.ItemId]" value="@item.SellerId" />
+                        </div>
+                    </div>
+                    <hr />
+                }
+                <input type="hidden" name="userId" value="@Model.UserId" />
+                <button type="submit" class="btn btn-success buybtn"><i class="fas fa-credit-card"></i> Buy</button>
+            </form>
+        }
+        else
+        {
+            <p>No items selected.</p>
+        }
+
+        <div id="confirmationMessage" class="confirmation-message"></div>
+        <div id="alertMessage" class="alert" style="display: none;"></div>
+        <div id="loadingAnimation" class="loading-animation">
+            <i class="fas fa-spinner fa-spin"></i> Processing your order...
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.quantity-input').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    if (this.value < 1) {
+                        this.value = 1;
+                    }
+                });
+            });
+
+            document.getElementById('buyForm').addEventListener('submit', function (event) {
+                let hasItems = false;
+                const alertMessage = document.getElementById('alertMessage');
+                const confirmationMessage = document.getElementById('confirmationMessage');
+                const loadingAnimation = document.getElementById('loadingAnimation');
+
+                document.querySelectorAll('.quantity-input').forEach(function (input) {
+                    if (input.value > 0) {
+                        hasItems = true;
+                    }
+                });
+
+                if (!hasItems) {
+                    alertMessage.innerText = 'Please choose at least one item.';
+                    alertMessage.style.display = 'block';
+                    event.preventDefault();
+                } else {
+                    alertMessage.style.display = 'none';
+                    confirmationMessage.style.display = 'block';
+                    loadingAnimation.style.display = 'block'; 
+
+                    event.preventDefault();
+                    setTimeout(function () {
+                        document.getElementById('buyForm').submit();
+                    }, 2000); 
+                }
+            });
+        });
+    </script>
+</body>
+</html>
